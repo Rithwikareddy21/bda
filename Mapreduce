@@ -1,0 +1,241 @@
+
+========================================================
+          MAPREDUCE WORD COUNT EXPERIMENT
+========================================================
+
+AIM:
+To implement Word Count using Hadoop MapReduce.
+
+--------------------------------------------------------
+STEP 1: CHECK JAVA AND HADOOP
+--------------------------------------------------------
+
+[TERMINAL]
+
+hadoop version
+java -version
+javac -version
+
+
+--------------------------------------------------------
+STEP 2: CREATE MAPREDUCE DIRECTORY
+--------------------------------------------------------
+
+[TERMINAL]
+
+cd ~
+mkdir -p mapreduce
+cd ~/mapreduce
+
+pwd
+
+
+--------------------------------------------------------
+STEP 3: CREATE INPUT FILE
+--------------------------------------------------------
+
+[TERMINAL]
+
+nano count.txt
+
+-- Enter the following content:
+
+hadoop is good
+hadoop is powerful
+mapreduce is good
+
+-- Save: Ctrl + O, Enter
+-- Exit: Ctrl + X
+
+-- Display input file:
+
+cat count.txt
+
+
+--------------------------------------------------------
+STEP 4: CREATE JAVA PROGRAM
+--------------------------------------------------------
+
+[TERMINAL]
+
+mkdir -p word
+nano word/Classword.java
+
+-- Paste the following Java program:
+
+package word;
+
+import java.io.IOException;
+import java.util.StringTokenizer;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+public class Classword {
+
+    public static class Map
+            extends Mapper<Object, Text, Text, IntWritable> {
+
+        private final static IntWritable one = new IntWritable(1);
+        private Text word = new Text();
+
+        public void map(Object key, Text value, Context context)
+                throws IOException, InterruptedException {
+
+            StringTokenizer itr =
+                new StringTokenizer(value.toString());
+
+            while (itr.hasMoreTokens()) {
+                word.set(itr.nextToken());
+                context.write(word, one);
+            }
+        }
+    }
+
+    public static class Reduce
+            extends Reducer<Text, IntWritable, Text, IntWritable> {
+
+        private IntWritable result = new IntWritable();
+
+        public void reduce(Text key, Iterable<IntWritable> values,
+                Context context)
+                throws IOException, InterruptedException {
+
+            int sum = 0;
+
+            for (IntWritable val : values) {
+                sum += val.get();
+            }
+
+            result.set(sum);
+            context.write(key, result);
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+
+        Configuration conf = new Configuration();
+        Job job = Job.getInstance(conf, "word count");
+
+        job.setJarByClass(Classword.class);
+        job.setMapperClass(Map.class);
+        job.setCombinerClass(Reduce.class);
+        job.setReducerClass(Reduce.class);
+
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(IntWritable.class);
+
+        FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
+    }
+}
+
+-- Save: Ctrl + O, Enter
+-- Exit: Ctrl + X
+
+
+--------------------------------------------------------
+STEP 5: COMPILE JAVA PROGRAM
+--------------------------------------------------------
+
+[TERMINAL]
+
+cd ~/mapreduce
+
+javac -classpath "$(hadoop classpath)" -d . word/Classword.java
+
+-- Check compiled files:
+
+ls word/
+
+
+--------------------------------------------------------
+STEP 6: CREATE JAR FILE
+--------------------------------------------------------
+
+[TERMINAL]
+
+jar -cvf mapreduce.jar word/*.class
+
+-- Check JAR contents:
+
+jar tf mapreduce.jar
+
+-- Check for:
+word/Classword.class
+
+
+--------------------------------------------------------
+STEP 7: UPLOAD INPUT FILE TO HDFS
+--------------------------------------------------------
+
+[TERMINAL]
+
+hdfs dfs -mkdir -p /user/cloudera
+
+hdfs dfs -put -f count.txt /user/cloudera/
+
+-- Check uploaded file:
+
+hdfs dfs -ls /user/cloudera/
+
+hdfs dfs -cat /user/cloudera/count.txt
+
+
+--------------------------------------------------------
+STEP 8: RUN MAPREDUCE PROGRAM
+--------------------------------------------------------
+
+[TERMINAL]
+
+cd ~/mapreduce
+
+-- Display local input file:
+
+cat count.txt
+
+-- Display HDFS input file:
+
+hdfs dfs -cat /user/cloudera/count.txt
+
+-- Delete previous output directory:
+
+hdfs dfs -rm -r -f /user/cloudera/result
+
+-- Execute MapReduce program:
+
+hadoop jar mapreduce.jar word.Classword /user/cloudera/count.txt /user/cloudera/result
+
+
+--------------------------------------------------------
+STEP 9: DISPLAY FINAL OUTPUT
+--------------------------------------------------------
+
+[TERMINAL]
+
+hdfs dfs -cat /user/cloudera/result/part-r-00000
+
+
+--------------------------------------------------------
+EXPECTED OUTPUT
+--------------------------------------------------------
+
+good        2
+hadoop      2
+is          3
+mapreduce   1
+powerful    1
+
+
+========================================================
+              EXPERIMENT COMPLETED
+========================================================
