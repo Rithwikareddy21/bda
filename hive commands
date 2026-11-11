@@ -1,0 +1,165 @@
+
+========================================================
+HIVE PRACTICAL: DATABASE, INTERNAL TABLE AND EXTERNAL TABLE
+========================================================
+
+[STEP 1: TERMINAL]
+Open Cloudera Terminal.
+
+Start Hive:
+hive
+
+
+[STEP 2: HIVE SHELL]
+Show existing databases:
+SHOW DATABASES;
+
+Create database:
+CREATE DATABASE hiveDemoDb;
+
+Show databases again:
+SHOW DATABASES;
+
+Create another database:
+CREATE DATABASE hiveDemoDb1;
+
+Drop the second database:
+DROP DATABASE hiveDemoDb1;
+
+
+[STEP 3: CREATE INTERNAL (MANAGED) TABLE]
+
+Create an internal table:
+CREATE TABLE hiveDemoDb.employee
+(
+    Id INT,
+    Name STRING,
+    Salary FLOAT
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ',';
+
+Describe the table:
+DESCRIBE hiveDemoDb.employee;
+
+
+[STEP 4: CREATE TABLE USING EXISTING TABLE SCHEMA]
+
+CREATE TABLE IF NOT EXISTS hiveDemoDb.copy_employee
+LIKE hiveDemoDb.employee;
+
+Check the table:
+DESCRIBE hiveDemoDb.copy_employee;
+
+
+[STEP 5: CREATE TABLE WITH COMMENTS AND PROPERTIES]
+
+CREATE TABLE hiveDemoDb.new_employee
+(
+    Id INT COMMENT 'Employee Id',
+    Name STRING COMMENT 'Employee Name',
+    Salary FLOAT COMMENT 'Employee Salary'
+)
+COMMENT 'Table Description'
+TBLPROPERTIES
+(
+    'creator'='Gaurav Chawla',
+    'created_at'='2021-11-30 11:00:00'
+);
+
+Describe the table:
+DESCRIBE hiveDemoDb.new_employee;
+
+
+[STEP 6: CREATE HDFS DIRECTORY]
+
+Exit Hive:
+QUIT;
+
+[TERMINAL]
+Create an HDFS directory:
+hdfs dfs -mkdir -p /HiveDirectory
+
+Check the directory:
+hdfs dfs -ls /
+
+
+[STEP 7: START HIVE AGAIN]
+
+[TERMINAL]
+hive
+
+[HIVE SHELL]
+Create an external table:
+CREATE EXTERNAL TABLE emplist
+(
+    Id INT,
+    Name STRING,
+    Salary FLOAT
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+LOCATION '/HiveDirectory';
+
+
+[STEP 8: DISPLAY EXTERNAL TABLE DATA]
+
+SELECT * FROM emplist;
+
+
+[STEP 9: INSERT RECORDS INTO EXTERNAL TABLE]
+
+Insert first employee:
+INSERT INTO TABLE emplist
+VALUES (11, 'John', 70000);
+
+Insert second employee:
+INSERT INTO TABLE emplist
+VALUES (12, 'Robert', 80000);
+
+Insert third employee:
+INSERT INTO TABLE emplist
+VALUES (13, 'Catherine', 90000);
+
+
+[STEP 10: DISPLAY FINAL RECORDS]
+
+SELECT * FROM emplist;
+
+Expected output:
+
+11    John       70000
+12    Robert     80000
+13    Catherine  90000
+
+
+[STEP 11: CHECK TABLE DETAILS]
+
+DESCRIBE emplist;
+
+SHOW TABLES;
+
+
+[STEP 12: EXIT HIVE]
+
+QUIT;
+
+
+========================================================
+IMPORTANT DIFFERENCE
+========================================================
+
+INTERNAL TABLE:
+- Also called Managed Table.
+- Hive manages both metadata and data.
+- Dropping the table deletes its data as well.
+
+EXTERNAL TABLE:
+- Created using the EXTERNAL keyword.
+- Data is stored at the specified HDFS location.
+- Dropping the table removes its metadata.
+- The actual data remains in the HDFS directory.
+
+========================================================
+END OF PRACTICAL
+========================================================
