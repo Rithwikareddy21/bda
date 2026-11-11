@@ -1,0 +1,109 @@
+# STEP 1: Create a working directory and enter it
+mkdir -p ~/wordcount
+cd ~/wordcount
+
+# STEP 2: Check Java and Hadoop are available
+java -version
+hadoop version
+
+# STEP 3: Create the Java source file automatically
+mkdir -p word
+cat > word/Classword.java <<'EOF'
+package word;
+
+import java.io.IOException;
+import java.util.StringTokenizer;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.fs.Path;
+
+public class Classword {
+    public static class Map extends Mapper<LongWritable, Text, Text, IntWritable> {
+        public void map(LongWritable key, Text value, Context context)
+                throws IOException, InterruptedException {
+            String line = value.toString();
+            StringTokenizer tokenizer = new StringTokenizer(line);
+            while (tokenizer.hasMoreTokens()) {
+                String word = tokenizer.nextToken();
+                context.write(new Text(word), new IntWritable(1));
+            }
+        }
+    }
+
+    public static class Reduce extends Reducer<Text, IntWritable, Text, IntWritable> {
+        public void reduce(Text key, Iterable<IntWritable> values, Context context)
+                throws IOException, InterruptedException {
+            int sum = 0;
+            for (IntWritable x : values) {
+                sum += x.get();
+            }
+            context.write(key, new IntWritable(sum));
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        if (args.length != 2) {
+            System.err.println("Usage: Classword <input path> <output path>");
+            System.exit(2);
+        }
+
+        Configuration conf = new Configuration();
+        Job job = new Job(conf, "My Word Count Program");
+        job.setJarByClass(Classword.class);
+        job.setMapperClass(Map.class);
+        job.setReducerClass(Reduce.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(IntWritable.class);
+        job.setInputFormatClass(TextInputFormat.class);
+        job.setOutputFormatClass(TextOutputFormat.class);
+
+        Path outputPath = new Path(args[1]);
+        FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileOutputFormat.setOutputPath(job, outputPath);
+        outputPath.getFileSystem(conf).delete(outputPath, true);
+
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
+    }
+}
+EOF
+
+# STEP 4: Create the sample input text file
+cat > input.txt <<'EOF'
+hello hadoop
+hello world
+hadoop world
+hello mapreduce
+EOF
+
+# STEP 5: Check the input text
+cat input.txt
+
+# STEP 6: Compile the Java program
+javac -classpath "$(hadoop classpath)" -d . word/Classword.java
+
+# STEP 7: Package the compiled classes into a JAR
+jar -cvf wordcount.jar -C . word
+
+# STEP 8: Create the HDFS input directory
+hdfs dfs -mkdir -p /user/cloudera/wordcount/input
+
+# STEP 9: Upload the input file to HDFS
+hdfs dfs -put -f input.txt /user/cloudera/wordcount/input/
+
+# STEP 10: Check the HDFS input file
+hdfs dfs -ls /user/cloudera/wordcount/input
+
+# STEP 11: Run the MapReduce job
+hadoop jar wordcount.jar word.Classword /user/cloudera/wordcount/input /user/cloudera/wordcount/output
+
+# STEP 12: Display the output
+hdfs dfs -cat /user/cloudera/wordcount/output/part-r-00000
