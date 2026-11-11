@@ -1,0 +1,222 @@
+
+hive
+-- You should see the hive prompt:
+hive>
+--------------------------------------------------------
+STEP 2: CREATE DATABASE
+--------------------------------------------------------
+CREATE DATABASE emp_details;
+USE emp_details;
+--------------------------------------------------------
+STEP 3: CREATE MANAGED TABLE
+--------------------------------------------------------
+CREATE TABLE emp(
+empno INT,
+ename STRING,
+job STRING,
+sal INT,
+deptno INT
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ',';
+
+-- Check table:
+
+SHOW TABLES;
+
+
+--------------------------------------------------------
+STEP 4: CREATE LOCAL INPUT FILE
+--------------------------------------------------------
+
+[TERMINAL - OPEN ANOTHER TERMINAL]
+
+cd ~/Desktop
+
+nano empdetails.txt
+
+-- Enter the following data:
+
+1,A,clerk,4000,10
+2,A,clerk,4000,30
+3,B,mgr,8000,20
+4,C,peon,2000,40
+5,D,clerk,4000,10
+6,E,mgr,8000,50
+
+-- Save: Ctrl + O, Enter
+-- Exit: Ctrl + X
+
+-- Check file:
+
+cat empdetails.txt
+
+
+--------------------------------------------------------
+STEP 5: LOAD LOCAL DATA INTO HIVE TABLE
+--------------------------------------------------------
+
+[HIVE SHELL]
+
+LOAD DATA LOCAL INPATH
+'/home/cloudera/Desktop/empdetails.txt'
+OVERWRITE INTO TABLE emp;
+
+-- Display records:
+
+SELECT * FROM emp;
+
+
+--------------------------------------------------------
+STEP 6: CHECK HIVE TABLE LOCATION IN HDFS
+--------------------------------------------------------
+
+[TERMINAL]
+
+hadoop fs -ls /user/hive/warehouse/emp_details.db/
+
+-- Check contents inside emp:
+
+hadoop fs -ls /user/hive/warehouse/emp_details.db/emp
+
+-- Display file contents:
+
+hadoop fs -cat /user/hive/warehouse/emp_details.db/emp/empdetails.txt
+
+
+--------------------------------------------------------
+STEP 7: CHECK TABLE SCHEMA
+--------------------------------------------------------
+
+[HIVE SHELL]
+
+DESCRIBE emp;
+
+-- Detailed schema:
+
+DESCRIBE EXTENDED emp;
+
+
+--------------------------------------------------------
+STEP 8: DISPLAY ALL TABLES
+--------------------------------------------------------
+
+[HIVE SHELL]
+
+SHOW TABLES;
+
+
+--------------------------------------------------------
+STEP 9: SELECT ALL EMPLOYEE NAMES
+--------------------------------------------------------
+
+[HIVE SHELL]
+
+SELECT ename FROM emp;
+
+
+--------------------------------------------------------
+STEP 10: GET RECORDS WHERE NAME IS A
+--------------------------------------------------------
+
+[HIVE SHELL]
+
+SELECT * FROM emp WHERE ename='A';
+
+
+--------------------------------------------------------
+STEP 11: COUNT TOTAL NUMBER OF RECORDS
+--------------------------------------------------------
+
+[HIVE SHELL]
+
+SELECT COUNT(1) FROM emp;
+
+-- OR:
+
+SELECT COUNT(*) FROM emp;
+
+
+--------------------------------------------------------
+STEP 12: SUM OF SALARIES BY DEPARTMENT
+--------------------------------------------------------
+
+[HIVE SHELL]
+
+SELECT deptno, SUM(sal)
+FROM emp
+GROUP BY deptno;
+
+
+--------------------------------------------------------
+STEP 13: GET SALARY BETWEEN 1000 AND 2000
+--------------------------------------------------------
+
+[HIVE SHELL]
+
+SELECT * FROM emp
+WHERE sal BETWEEN 1000 AND 2000;
+
+
+--------------------------------------------------------
+STEP 14: EMPLOYEE NAMES WHERE JOB HAS 5 CHARACTERS
+--------------------------------------------------------
+
+[HIVE SHELL]
+
+SELECT ename FROM emp
+WHERE job LIKE '_____';
+
+
+--------------------------------------------------------
+STEP 15: EMPLOYEE NAMES WHERE SECOND JOB CHARACTER IS l
+--------------------------------------------------------
+
+[HIVE SHELL]
+
+SELECT ename FROM emp
+WHERE job LIKE '_l%';
+
+
+--------------------------------------------------------
+STEP 16: TOTAL SALARY FOR EACH DEPARTMENT
+--------------------------------------------------------
+
+[HIVE SHELL]
+
+SELECT deptno, SUM(sal)
+FROM emp
+GROUP BY deptno;
+
+
+--------------------------------------------------------
+STEP 17: ADD A COLUMN
+--------------------------------------------------------
+
+[HIVE SHELL]
+
+ALTER TABLE emp ADD COLUMNS(lastname STRING);
+DESCRIBE emp;
+
+
+--------------------------------------------------------
+STEP 18: RENAME TABLE
+--------------------------------------------------------
+ALTER TABLE emp RENAME TO emp1;
+
+-- Check renamed table:
+SHOW TABLES;
+DESCRIBE emp1;
+
+--------------------------------------------------------
+STEP 19: DROP TABLE
+--------------------------------------------------------
+DROP TABLE emp1;
+SHOW TABLES;
+
+--------------------------------------------------------
+STEP 20: EXIT HIVE
+--------------------------------------------------------
+
+
+QUIT;
