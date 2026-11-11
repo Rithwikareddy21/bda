@@ -1,0 +1,176 @@
+
+============================================================
+BIG DATA ANALYTICS LABORATORY
+EXPERIMENTS 7 AND 8 - CODE EXTRACTED FROM UPLOADED PDF
+============================================================
+
+NOTE:
+This file contains the Python code from the uploaded PDF:
+- Experiment 7: Programs on Data Visualization Techniques
+- Experiment 8: Mahout Machine Learning Library
+Copy and run the code in a Jupyter Notebook / Google Colab.
+Run the cells in the order given.
+
+
+============================================================
+EXPERIMENT NO. 7
+PROGRAMS ON DATA VISUALIZATION TECHNIQUES
+============================================================
+
+AIM:
+To explore various data visualization techniques with Python libraries.
+
+
+[1] IMPORTING LIBRARIES
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.express as px
+
+
+[2] LOAD DATASET
+
+data = sns.load_dataset('iris')
+data.head()
+
+
+[3] HISTOGRAM
+
+plt.figure(figsize=(8, 5))
+sns.histplot(data['sepal_length'], kde=True, color='purple')
+plt.title('Histogram of Sepal Length')
+plt.xlabel('Sepal Length')
+plt.ylabel('Frequency')
+plt.show()
+
+
+[4] BOX PLOT
+
+plt.figure(figsize=(8, 5))
+sns.boxplot(x='species', y='sepal_length', data=data, palette='Set2')
+plt.title('Box Plot of Sepal Length by Species')
+plt.show()
+
+
+[5] SCATTER PLOT WITH REGRESSION LINE
+
+plt.figure(figsize=(8, 5))
+sns.regplot(x='sepal_length', y='petal_length', data=data, color='blue')
+plt.title('Scatter Plot with Regression Line (Sepal vs Petal Length)')
+plt.show()
+
+
+[6] HEATMAP
+
+plt.figure(figsize=(8, 6))
+numeric_df = data.drop(columns=['species'])
+sns.heatmap(numeric_df.corr(), annot=True, cmap='coolwarm', fmt='.2f')
+plt.title('Correlation Heatmap')
+plt.show()
+
+
+[7] 3D INTERACTIVE PLOT
+
+fig = px.scatter_3d(data, x='sepal_length', y='sepal_width', z='petal_length',
+                    color='species', title='3D Interactive Plot of Iris Dataset')
+fig.show()
+
+
+============================================================
+EXPERIMENT NO. 8
+MAHOUT MACHINE LEARNING LIBRARY
+============================================================
+
+AIM:
+To implement an unsupervised K-Means clustering pipeline using PySpark MLlib.
+
+
+[1] IMPORTING LIBRARIES
+
+from pyspark.sql import SparkSession
+from pyspark.ml.feature import VectorAssembler
+from pyspark.ml.clustering import KMeans
+from pyspark.ml.evaluation import ClusteringEvaluator
+import matplotlib.pyplot as plt
+import pandas as pd
+
+
+[2] INITIALIZE SPARK SESSION
+
+spark = SparkSession.builder.appName("MahoutKMeansInis").getOrCreate()
+
+
+[3] LOAD DATASET INTO SPARK DATAFRAME
+
+url = "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv"
+pdf = pd.read_csv(url)
+spark_df = spark.createDataFrame(pdf)
+
+
+[4] SPARK SCHEMA
+
+print("Spark Schema:")
+spark_df.printSchema()
+
+
+[5] SELECT FEATURES AND ASSEMBLE VECTOR
+
+feature_cols = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width']
+assembler = VectorAssembler(inputCols=feature_cols, outputCol="features")
+dataset = assembler.transform(spark_df)
+dataset.show(5, truncate=False)
+
+
+[6] TRAIN K-MEANS MODEL
+
+kmeans = KMeans(featuresCol="features", k=3, seed=42)
+model = kmeans.fit(dataset)
+predictions = model.transform(dataset)
+predictions.select('species', 'prediction').show(10, truncate=False)
+
+
+[7] EVALUATE CLUSTERING USING SILHOUETTE SCORE
+
+evaluator = ClusteringEvaluator()
+silhouette = evaluator.evaluate(predictions)
+print(f"Silhouette with Squared Euclidean Distance = {silhouette}")
+
+
+[8] INSPECT CLUSTER CENTERS
+
+centers = model.clusterCenters()
+print("Cluster Centers:")
+for center in centers:
+    print(center)
+
+
+[9] SUMMARIZE RESULTS
+
+print("Cross-Tabulation of Predicted Clusters vs Actual Species:")
+predictions.crosstab('prediction', 'species').show()
+
+
+[10] VISUALIZING THE PREDICTIONS
+
+pred_pd = predictions.select("sepal_length", "sepal_width", "prediction", "species").toPandas()
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+plt.figure(figsize=(9, 6))
+sns.scatterplot(data=pred_pd, x='sepal_length', y='sepal_width', hue='prediction', style='species',
+                palette='Set1',
+                s=100
+)
+plt.title('K-Means Clustering Visualization (Sepal Length vs. Sepal Width)')
+plt.xlabel('Sepal Length')
+plt.ylabel('Sepal Width')
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.tight_layout()
+plt.show()
+
+
+============================================================
+END OF EXPERIMENTS 7 AND 8
+============================================================
