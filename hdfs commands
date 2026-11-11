@@ -1,0 +1,119 @@
+
+HDFS EXPERIMENT 1 - COMMANDS
+
+# 1. Check Hadoop version
+hadoop version
+
+# 2. List files and directories in default HDFS directory
+hadoop fs -ls
+
+# 3. List all directories under HDFS root
+hadoop fs -ls /
+
+# 4. Copy file from Local File System to HDFS
+hadoop fs -copyFromLocal students.txt /user/cloudera/
+
+# 5. Check whether file is copied into HDFS
+hadoop fs -ls /user/cloudera/
+
+# 6. Display contents of a file in HDFS
+hadoop fs -cat /user/cloudera/students.txt
+
+# 7. Copy file from Local File System to HDFS using put
+hadoop fs -put students.txt /user/cloudera/studentscopied.txt
+
+# 8. Copy file from HDFS to Local File System
+hadoop fs -copyToLocal /user/cloudera/students.txt studentscopiedtolocal.txt
+
+# 9. Check health of Hadoop File System
+hdfs fsck /
+
+# 10. Create a directory in HDFS
+hadoop fs -mkdir /user/cloudera/kriti2018
+
+# 11. Copy a file from one HDFS location to another HDFS directory
+hadoop fs -cp /user/cloudera/students.txt /user/cloudera/kriti2018/
+
+# 12. Create an empty file in HDFS
+hadoop fs -touchz /user/cloudera/empty.txt
+
+# 13. Check file size in HDFS
+hadoop fs -du -s /user/cloudera/students.txt
+
+# 14. Display contents of a file in HDFS
+hadoop fs -cat /user/cloudera/students.txt
+
+# 15. Count directories, files and bytes in HDFS
+hadoop fs -count /user/cloudera/kriti2018
+
+# 16. Remove a file from HDFS
+hadoop fs -rm /user/cloudera/empty.txt
+
+# 17. Delete a directory and all its contents from HDFS
+hadoop fs -rm -r /user/cloudera/kriti2018
+
+# 18. Copy a file from one HDFS location to another
+hadoop fs -cp /user/cloudera/dummy3.txt /user/cloudera/kriti2018/
+
+# 19. Move a file into an HDFS directory
+hadoop fs -mv /user/cloudera/emptyfile.txt /user/cloudera/kriti2018/
+
+# 20. Display usage of an individual HDFS command
+hdfs dfs -usage mkdir
+
+# 21. Display help for HDFS commands
+hadoop fs -help
+
+# 22. Check HDFS disk space and memory status
+hadoop fs -df /
+
+# 23. Check and balance HDFS cluster
+hadoop balancer
+
+# 24. Change file permission to 777
+hadoop fs -chmod 777 /user/cloudera/students.txt
+
+# 25. Empty HDFS trash
+hadoop fs -expunge
+
+# 26. Display the last 1 KB of a file
+hadoop fs -tail /user/cloudera/n.txt
+
+# 27. Append local file contents to an existing HDFS file
+hadoop fs -appendToFile /home/cloudera/Desktop/first.txt /user/cloudera/second.txt
+
+
+# ADDITIONAL IMPORTANT HDFS COMMANDS
+
+# List files recursively
+hadoop fs -ls -R /
+
+# Create directory including parent directories
+hadoop fs -mkdir -p /user/cloudera/newfolder/subfolder
+
+# Remove an empty directory
+hadoop fs -rmdir /user/cloudera/emptyfolder
+
+# Copy file from HDFS to local using get
+hadoop fs -get /user/cloudera/students.txt /home/cloudera/Desktop/
+
+# Display first lines of a file
+hadoop fs -cat /user/cloudera/students.txt
+
+# Check available HDFS space
+hadoop fs -df -h /
+
+# Check directory size
+hadoop fs -du -h /user/cloudera/
+
+# Change file permission
+hadoop fs -chmod 755 /user/cloudera/students.txt
+
+# Change file owner
+hadoop fs -chown cloudera /user/cloudera/students.txt
+
+# Rename a file in HDFS
+hadoop fs -mv /user/cloudera/old.txt /user/cloudera/new.txt
+
+# Remove a file permanently
+hadoop fs -rm -skipTrash /user/cloudera/empty.txt
