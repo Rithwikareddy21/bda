@@ -1,0 +1,186 @@
+
+====================================================
+             SQOOP PRACTICAL EXPERIMENT
+====================================================
+
+AIM:
+To import data from MySQL to HDFS and export
+data from HDFS to MySQL using Sqoop.
+
+----------------------------------------------------
+PART 1: CREATE DATABASE AND TABLE
+----------------------------------------------------
+
+[TERMINAL]
+
+mysql -uroot -pcloudera
+
+[MYSQL]
+
+-- Delete old database if it exists (optional)
+DROP DATABASE IF EXISTS sqoop_db;
+
+-- Create database
+CREATE DATABASE sqoop_db;
+
+-- Select database
+USE sqoop_db;
+
+-- Create employee table
+CREATE TABLE emp(
+empno INT PRIMARY KEY,
+ename VARCHAR(10),
+job VARCHAR(9),
+mgr INT,
+hiredate DATE,
+sal INT,
+deptno INT
+);
+
+-- Insert records
+INSERT INTO emp VALUES
+(1,'ABC','teacher',100,'2013-01-12',50000,10);
+
+INSERT INTO emp VALUES
+(2,'XYZ','teacher',200,'2014-10-02',650000,20);
+
+INSERT INTO emp VALUES
+(3,'PQRS','teacher',200,'2010-10-02',640000,30);
+
+-- Display records
+SELECT * FROM emp;
+
+-- Exit MySQL
+EXIT;
+
+
+----------------------------------------------------
+PART 2: IMPORT DATA FROM MYSQL TO HDFS
+----------------------------------------------------
+
+[TERMINAL]
+
+sqoop import \
+--connect jdbc:mysql://localhost/sqoop_db \
+--username root \
+--password cloudera \
+--table emp \
+--target-dir /user/cloudera/scoop_data
+
+-- Check imported files
+hadoop fs -ls /user/cloudera/scoop_data
+
+-- Display imported data
+hadoop fs -cat /user/cloudera/scoop_data/part-m-*
+
+-- If import directory already exists, delete it
+-- before running the import again:
+hadoop fs -rm -r /user/cloudera/scoop_data
+
+
+----------------------------------------------------
+PART 3: CREATE LOCAL FILE FOR EXPORT
+----------------------------------------------------
+
+[TERMINAL]
+
+-- Create file
+echo "1,2,3" > abc.txt
+
+-- Create HDFS export directory
+hadoop fs -mkdir -p /user/cloudera/abc_export
+
+-- Upload file to HDFS directory
+hadoop fs -put -f abc.txt /user/cloudera/abc_export/
+
+-- Check file
+hadoop fs -ls /user/cloudera/abc_export/
+
+-- Display file
+hadoop fs -cat /user/cloudera/abc_export/abc.txt
+
+
+----------------------------------------------------
+PART 4: CREATE MYSQL TABLE FOR EXPORT
+----------------------------------------------------
+
+[TERMINAL]
+
+mysql -uroot -pcloudera
+
+[MYSQL]
+
+USE sqoop_db;
+
+-- Create table only if it does not exist
+CREATE TABLE IF NOT EXISTS abc_table(
+a INT,
+b INT,
+c INT
+);
+
+-- Check table
+SELECT * FROM abc_table;
+
+-- Exit MySQL
+EXIT;
+
+
+----------------------------------------------------
+PART 5: EXPORT DATA FROM HDFS TO MYSQL
+----------------------------------------------------
+
+[TERMINAL]
+
+sqoop export \
+--connect jdbc:mysql://localhost/sqoop_db \
+--username root \
+--password cloudera \
+--table abc_table \
+--export-dir /user/cloudera/abc_export \
+--input-fields-terminated-by ','
+
+----------------------------------------------------
+PART 6: VERIFY EXPORTED DATA
+----------------------------------------------------
+
+[TERMINAL]
+
+mysql -uroot -pcloudera
+
+[MYSQL]
+
+USE sqoop_db;
+
+-- Display exported records
+SELECT * FROM abc_table;
+
+-- Exit
+EXIT;
+
+
+----------------------------------------------------
+PART 7: CLEANUP COMMANDS (OPTIONAL)
+----------------------------------------------------
+
+[TERMINAL]
+
+-- Delete HDFS import directory
+hadoop fs -rm -r /user/cloudera/scoop_data
+
+-- Delete HDFS export directory
+hadoop fs -rm -r /user/cloudera/abc_export
+
+[MYSQL]
+
+-- To clear export table before exporting again:
+USE sqoop_db;
+TRUNCATE TABLE abc_table;
+
+-- To delete the entire database (CAUTION):
+DROP DATABASE sqoop_db;
+
+
+====================================================
+                 EXPERIMENT COMPLETED
+====================================================
