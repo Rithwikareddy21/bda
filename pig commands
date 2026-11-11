@@ -1,0 +1,198 @@
+
+# 1. Enter into Pig Grunt Shell
+pig
+
+
+--------------------------------------------------
+PART 2: CREATE DATASETS IN LOCAL SYSTEM
+--------------------------------------------------
+
+[TERMINAL - Open another terminal if Pig is running]
+
+# 2. Go to Desktop
+cd /home/cloudera/Desktop
+
+# 3. Create first dataset
+gedit pigfile.txt
+
+# Enter the following data and save:
+1,2,3
+4,5,6
+5,7,0
+
+# 4. Create second dataset
+gedit pigfile1.txt
+
+# Enter the following data and save:
+2,4,5
+2,4,5
+4,7,9
+
+
+--------------------------------------------------
+PART 3: COPY FILES FROM LOCAL TO HDFS
+--------------------------------------------------
+
+[TERMINAL]
+
+# 5. Copy first file to HDFS
+hadoop fs -put pigfile.txt /user/cloudera/
+
+# 6. Copy second file to HDFS
+hadoop fs -put pigfile1.txt /user/cloudera/
+
+# 7. Verify files in HDFS
+hadoop fs -ls /user/cloudera/
+
+
+--------------------------------------------------
+PART 4: LOAD DATA INTO PIG
+--------------------------------------------------
+
+[GRUNT SHELL]
+
+# 8. Load first dataset
+a = LOAD '/user/cloudera/pigfile.txt' USING PigStorage(',');
+
+# 9. Display first dataset
+DUMP a;
+
+# 10. Load second dataset
+b = LOAD '/user/cloudera/pigfile1.txt' USING PigStorage(',');
+
+# 11. Display second dataset
+DUMP b;
+
+
+--------------------------------------------------
+PART 5: SPECIFY SCHEMA FOR DATASETS
+--------------------------------------------------
+
+[GRUNT SHELL]
+
+# 12. Specify schema for first dataset
+a = LOAD '/user/cloudera/pigfile.txt' USING PigStorage(',')
+AS (a1:int, a2:int, a3:int);
+
+# 13. Display first dataset
+DUMP a;
+
+# 14. Specify schema for second dataset
+b = LOAD '/user/cloudera/pigfile1.txt' USING PigStorage(',')
+AS (b1:int, b2:int, b3:int);
+
+# 15. Display second dataset
+DUMP b;
+
+
+--------------------------------------------------
+PART 6: CHECK SCHEMA OF DATASETS
+--------------------------------------------------
+
+[GRUNT SHELL]
+
+# 16. Check schema of dataset a
+DESCRIBE a;
+
+# 17. Check schema of dataset b
+DESCRIBE b;
+
+
+--------------------------------------------------
+PART 7: COMBINE TWO DATASETS USING UNION
+--------------------------------------------------
+
+[GRUNT SHELL]
+
+# 18. Combine datasets a and b
+c = UNION a,b;
+
+# 19. Display combined dataset
+DUMP c;
+
+
+--------------------------------------------------
+PART 8: SPLIT DATASET INTO TWO RELATIONS
+--------------------------------------------------
+
+[GRUNT SHELL]
+
+# 20. Split dataset c based on first column
+SPLIT c INTO d IF $0 == 1, e IF $0 == 4;
+
+# 21. Display dataset d
+DUMP d;
+
+# 22. Display dataset e
+DUMP e;
+
+
+--------------------------------------------------
+PART 9: FILTER DATASET
+--------------------------------------------------
+
+[GRUNT SHELL]
+
+# 23. Filter dataset c where column 1 is greater than 6
+f = FILTER c BY $1 > 6;
+
+# 24. Display filtered dataset
+DUMP f;
+
+
+--------------------------------------------------
+PART 10: GROUP DATASET
+--------------------------------------------------
+
+[GRUNT SHELL]
+
+# 25. Group dataset c by column 2
+g = GROUP c BY $2;
+
+# 26. Display grouped dataset
+DUMP g;
+
+
+--------------------------------------------------
+PART 11: SELECT COLUMNS USING FOREACH
+--------------------------------------------------
+
+[GRUNT SHELL]
+
+# 27. Select column 1 and column 2 from dataset a
+s1 = FOREACH a GENERATE $1,$2;
+
+# 28. Display selected columns
+DUMP s1;
+
+
+--------------------------------------------------
+PART 12: STORE RESULT IN HDFS
+--------------------------------------------------
+
+[GRUNT SHELL]
+
+# 29. Store result in HDFS
+STORE s1 INTO '/user/cloudera/pigresult';
+
+
+--------------------------------------------------
+PART 13: VERIFY RESULT IN HDFS
+--------------------------------------------------
+
+# First exit Pig Grunt Shell
+
+[GRUNT SHELL]
+
+quit;
+
+
+[TERMINAL]
+
+# 30. List files in HDFS output directory
+hadoop fs -ls /user/cloudera/pigresult/
+
+# 31. Display output file contents
+hadoop fs -cat /user/cloudera/pigresult/part-m-00000
+
+
